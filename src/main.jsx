@@ -61,7 +61,26 @@ function render(content) {
   );
 }
 
-const convexUrl = import.meta.env.VITE_CONVEX_URL;
+function normalizeConvexUrl(value) {
+  if (!value) {
+    return "";
+  }
+
+  const trimmed = value.trim().replace(/^["']|["']$/g, "");
+  const deploymentName = trimmed.replace(/^(dev|prod):/, "");
+
+  if (/^[a-z]+-[a-z]+-\d+$/.test(deploymentName)) {
+    return `https://${deploymentName}.convex.cloud`;
+  }
+
+  if (trimmed.endsWith(".convex.site")) {
+    return trimmed.replace(/\.convex\.site$/, ".convex.cloud");
+  }
+
+  return trimmed;
+}
+
+const convexUrl = normalizeConvexUrl(import.meta.env.VITE_CONVEX_URL);
 
 if (!convexUrl) {
   render(
