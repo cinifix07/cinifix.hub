@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>VoltCorp | Login</title>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .login-card {
+            box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.04);
+        }
+        .btn-primary-press:active {
+            transform: scale(0.98);
+            box-shadow: 0px 4px 12px rgba(255, 234, 0, 0.4);
+        }
+    </style>
+<!-- Tailwind Configuration -->
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "background": "#fff9e7",
+                        "tertiary-fixed-dim": "#f7be00",
+                        "surface-container": "#f4eeda",
+                        "tertiary": "#775a00",
+                        "surface-container-low": "#f9f4df",
+                        "surface-container-high": "#eee8d4",
+                        "on-surface": "#1e1c10",
+                        "secondary": "#705d00",
+                        "surface-dim": "#dfdac6",
+                        "on-secondary-fixed-variant": "#544600",
+                        "surface-container-highest": "#e8e2cf",
+                        "on-surface-variant": "#4b4731",
+                        "primary": "#695f00",
+                        "on-secondary-container": "#6e5c00",
+                        "on-tertiary-fixed": "#251a00",
+                        "error": "#ba1a1a",
+                        "surface-bright": "#fff9e7",
+                        "secondary-container": "#fcd400",
+                        "on-error": "#ffffff",
+                        "on-primary-container": "#736900",
+                        "on-tertiary-fixed-variant": "#5a4300",
+                        "on-secondary-fixed": "#221b00",
+                        "secondary-fixed": "#ffe16d",
+                        "inverse-surface": "#333123",
+                        "primary-fixed": "#fae500",
+                        "on-tertiary-container": "#826300",
+                        "outline-variant": "#cdc7aa",
+                        "outline": "#7c785f",
+                        "on-primary": "#ffffff",
+                        "on-tertiary": "#ffffff",
+                        "tertiary-container": "#ffe5ae",
+                        "inverse-primary": "#dbc900",
+                        "secondary-fixed-dim": "#e9c400",
+                        "surface": "#fff9e7",
+                        "inverse-on-surface": "#f7f1dc",
+                        "on-primary-fixed": "#1f1c00",
+                        "on-primary-fixed-variant": "#4f4800",
+                        "surface-variant": "#e8e2cf",
+                        "on-secondary": "#ffffff",
+                        "error-container": "#ffdad6",
+                        "surface-container-lowest": "#ffffff",
+                        "on-background": "#1e1c10",
+                        "primary-container": "#ffea00",
+                        "primary-fixed-dim": "#dbc900",
+                        "surface-tint": "#695f00",
+                        "on-error-container": "#93000a",
+                        "tertiary-fixed": "#ffdf99"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "lg": "48px",
+                        "form-width": "400px",
+                        "md": "24px",
+                        "xs": "4px",
+                        "base": "8px",
+                        "xl": "80px",
+                        "sm": "12px",
+                        "container-max": "1200px"
+                    },
+                    "fontFamily": {
+                        "body-md": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "label-md": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "headline-lg-mobile": ["Inter"]
+                    },
+                    "fontSize": {
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "label-sm": ["12px", {"lineHeight": "16px", "fontWeight": "500"}],
+                        "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "headline-lg-mobile": ["28px", {"lineHeight": "36px", "fontWeight": "700"}]
+                    }
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background min-h-screen flex flex-col">
+<!-- Header / TopAppBar -->
+
+<main class="flex-grow flex items-center justify-center px-md py-xl relative">
+<!-- Ambient Background Texture -->
+<div class="absolute inset-0 pointer-events-none opacity-20 overflow-hidden">
+
+</div>
+<!-- Login Container -->
+<div class="w-full max-w-form-width bg-surface-container-lowest rounded-xl login-card p-lg z-10 border border-outline-variant/30">
+<!-- Welcome Header -->
+<div class="text-center mb-xl">
+<h1 class="font-headline-lg text-headline-lg text-on-surface mb-xs">CINI FIX</h1>
+<p class="font-body-md text-body-md text-on-surface-variant">Daily Task Monitoring | Allowance Tracking</p>
+</div>
+<!-- Login Form -->
+<form action="#" class="space-y-md" onsubmit="event.preventDefault();">
+
+
+<!-- Password Field -->
+<div class="space-y-xs">
+<div class="flex justify-between items-center">
+<label class="block font-label-md text-label-md text-on-surface" for="password">Secret key</label>
+</div>
+<div class="relative group">
+<span class="material-symbols-outlined absolute left-base top-1/2 -translate-y-1/2 text-outline group-focus-within:text-primary transition-colors">lock</span>
+<input class="w-full pl-10 pr-10 py-3 rounded-lg border border-outline-variant bg-surface-bright focus:border-primary-container focus:ring-2 focus:ring-primary-container/20 transition-all outline-none font-body-md text-body-md placeholder:text-outline" id="password" name="password" placeholder="••••••••" type="password"/>
+<button class="material-symbols-outlined absolute right-base top-1/2 -translate-y-1/2 text-outline hover:text-on-surface-variant" type="button">visibility</button>
+</div>
+</div>
+<!-- Remember Me -->
+
+<!-- Sign In Button -->
+<button class="w-full py-3 bg-primary-container text-on-surface font-bold rounded-lg btn-primary-press transition-all hover:opacity-90 shadow-md flex items-center justify-center gap-base" type="submit">
+<span>Sign In</span>
+<span class="material-symbols-outlined">arrow_forward</span>
+</button>
+</form>
+<!-- SSO / Divider -->
+
+<!-- Footer Link -->
+<div class="mt-xl text-center">
+<p class="font-body-md text-body-md text-on-surface-variant">
+                    Don't have an account? Message CINI FIX TECH to get access.
+                    <a class="text-primary font-bold hover:underline ml-xs" href="https://www.facebook.com/cinanyag">Message</a>
+</p>
+</div>
+</div>
+</main>
+<!-- Footer -->
+
+<script>
+        // Micro-interaction for the "Visibility" toggle
+        const togglePassword = document.querySelector('button.material-symbols-outlined');
+        const passwordInput = document.getElementById('password');
+
+        if (togglePassword && passwordInput) {
+            togglePassword.addEventListener('click', () => {
+                const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                passwordInput.setAttribute('type', type);
+                togglePassword.textContent = type === 'password' ? 'visibility' : 'visibility_off';
+            });
+        }
+    </script>
+</body></html>
