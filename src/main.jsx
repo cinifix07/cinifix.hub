@@ -16,6 +16,8 @@ const errorPageStyle = {
   color: "#172033",
 };
 
+const DEFAULT_CONVEX_URL = "https://agile-gull-167.convex.cloud";
+
 function ConfigurationError({ message }) {
   return (
     <main style={errorPageStyle}>
@@ -80,7 +82,7 @@ function normalizeConvexUrl(value) {
   return trimmed;
 }
 
-const convexUrl = normalizeConvexUrl(import.meta.env.VITE_CONVEX_URL);
+const convexUrl = normalizeConvexUrl(import.meta.env.VITE_CONVEX_URL || DEFAULT_CONVEX_URL);
 
 if (!convexUrl) {
   render(
