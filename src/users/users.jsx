@@ -82,15 +82,32 @@ function SidebarIcon({ item, onClick }) {
 
 const initialTaskForm = {
   taskName: '',
-  taskDate: '',
+  taskStartDate: '',
+  taskEndDate: '',
+  taskWeekdays: [],
   taskStartTime: '',
   taskEndTime: '',
   taskDefinition: '',
 }
 
+const taskWeekdayOptions = [
+  { value: 'monday', label: 'Monday', shortLabel: 'Mon' },
+  { value: 'tuesday', label: 'Tuesday', shortLabel: 'Tue' },
+  { value: 'wednesday', label: 'Wednesday', shortLabel: 'Wed' },
+  { value: 'thursday', label: 'Thursday', shortLabel: 'Thu' },
+  { value: 'friday', label: 'Friday', shortLabel: 'Fri' },
+  { value: 'saturday', label: 'Saturday', shortLabel: 'Sat' },
+  { value: 'sunday', label: 'Sunday', shortLabel: 'Sun' },
+]
+
 const initialAuditForm = {
   name: '',
   totalAmount: '',
+}
+
+const initialAuditReportForm = {
+  startDate: '',
+  endDate: '',
 }
 
 const initialNarrativeForm = {
@@ -245,13 +262,27 @@ function generateNarrativesPdf(records) {
   reportWindow.print()
 }
 
-function generateAuditReport(records, summary) {
+function getAuditRecordDate(record) {
+  return getLocalDateValue(new Date(record.createdAt))
+}
+
+function getAuditRecordsForReport(records, reportForm, type) {
+  return records.filter((record) => {
+    const recordDate = getAuditRecordDate(record)
+
+    return record.type === type && recordDate >= reportForm.startDate && recordDate <= reportForm.endDate
+  })
+}
+
+function generateAuditReport(records, summary, options = {}) {
   const reportWindow = window.open('', '_blank')
 
   if (!reportWindow) {
     return
   }
 
+  const selectedTotal = options.reportType === 'inflow' ? summary.inflow : summary.outflow
+  const selectedTotalLabel = options.reportType === 'inflow' ? 'Total Money In Flow' : 'Total Money Out Flow'
   const rows = records
     .map(
       (record) => `
@@ -279,11 +310,21 @@ function generateAuditReport(records, summary) {
           th { background: #f3f4f6; }
           .summary { display: flex; gap: 16px; margin-top: 24px; }
           .summary div { border: 1px solid #d1d5db; padding: 12px; }
+          .selected-total { border: 2px solid #111827; margin-top: 24px; padding: 16px; }
+          .selected-total strong { display: block; font-size: 14px; margin-bottom: 8px; text-transform: uppercase; }
+          .selected-total span { display: block; font-size: 28px; font-weight: 700; }
+          tfoot td { font-weight: 700; }
         </style>
       </head>
       <body>
         <h1>CINI FIX Money Flow Report</h1>
         <p>Generated ${new Date().toLocaleString()}</p>
+        ${options.typeLabel ? `<p><strong>Report Type:</strong> ${options.typeLabel}</p>` : ''}
+        ${options.dateRange ? `<p><strong>Date Range:</strong> ${options.dateRange}</p>` : ''}
+        <div class="selected-total">
+          <strong>${selectedTotalLabel}</strong>
+          <span>${formatMoney(selectedTotal)}</span>
+        </div>
         <div class="summary">
           <div><strong>In Flow</strong><br>${formatMoney(summary.inflow)}</div>
           <div><strong>Out Flow</strong><br>${formatMoney(summary.outflow)}</div>
@@ -300,6 +341,13 @@ function generateAuditReport(records, summary) {
             </tr>
           </thead>
           <tbody>${rows}</tbody>
+          <tfoot>
+            <tr>
+              <td colspan="2">${selectedTotalLabel}</td>
+              <td>${formatMoney(selectedTotal)}</td>
+              <td colspan="2"></td>
+            </tr>
+          </tfoot>
         </table>
       </body>
     </html>
@@ -387,14 +435,73 @@ function getTaskStartTime(task) {
   return taskTime.includes(' - ') ? taskTime.split(' - ')[0] : taskTime
 }
 
+function getTaskStartDate(task) {
+  return task.taskStartDate || task.taskDate || ''
+}
+
+function getTaskEndDate(task) {
+  return task.taskEndDate || task.taskDate || ''
+}
+
+function getTaskWeekdays(task) {
+  return Array.isArray(task.taskWeekdays) ? task.taskWeekdays : []
+}
+
+function getTaskEditableWeekdays(task) {
+  return Array.isArray(task.taskWeekdays)
+    ? task.taskWeekdays
+    : taskWeekdayOptions.map((option) => option.value)
+}
+
+function formatTaskWeekdays(task) {
+  const taskWeekdays = getTaskWeekdays(task)
+
+  if (taskWeekdays.length === 0) {
+    return 'Every day'
+  }
+
+  return taskWeekdayOptions
+    .filter((option) => taskWeekdays.includes(option.value))
+    .map((option) => option.shortLabel)
+    .join(', ')
+}
+
 function getTaskForm(task) {
   return {
     taskName: task.taskName,
-    taskDate: task.taskDate,
+    taskStartDate: getTaskStartDate(task),
+    taskEndDate: getTaskEndDate(task),
+    taskWeekdays: getTaskEditableWeekdays(task),
     taskStartTime: getTaskStartTime(task),
     taskEndTime: task.taskEndTime || '',
     taskDefinition: task.taskDefinition,
   }
+}
+
+function WeekdaySelector({ selectedDays, onToggle }) {
+  return (
+    <fieldset className="task-weekday-field">
+      <legend>Schedule Days</legend>
+      <div className="task-weekday-grid">
+        {taskWeekdayOptions.map((option) => {
+          const isSelected = selectedDays.includes(option.value)
+
+          return (
+            <button
+              className={`task-weekday-button${isSelected ? ' selected' : ''}`}
+              type="button"
+              aria-pressed={isSelected}
+              key={option.value}
+              onClick={() => onToggle(option.value)}
+            >
+              <span>{option.shortLabel}</span>
+              <small>{option.label}</small>
+            </button>
+          )
+        })}
+      </div>
+    </fieldset>
+  )
 }
 
 function TaskActionModal({ action, task, onClose }) {
@@ -407,6 +514,16 @@ function TaskActionModal({ action, task, onClose }) {
 
   function updateField(field, value) {
     setForm((current) => ({ ...current, [field]: value }))
+    setStatus(null)
+  }
+
+  function toggleWeekday(day) {
+    setForm((current) => ({
+      ...current,
+      taskWeekdays: current.taskWeekdays.includes(day)
+        ? current.taskWeekdays.filter((selectedDay) => selectedDay !== day)
+        : [...current.taskWeekdays, day],
+    }))
     setStatus(null)
   }
 
@@ -494,11 +611,21 @@ function TaskActionModal({ action, task, onClose }) {
 
             <div className="task-form-row">
               <label>
-                <span>Calendar Pick</span>
+                <span>Start Date</span>
                 <input
                   type="date"
-                  value={form.taskDate}
-                  onChange={(event) => updateField('taskDate', event.target.value)}
+                  value={form.taskStartDate}
+                  onChange={(event) => updateField('taskStartDate', event.target.value)}
+                  required
+                />
+              </label>
+
+              <label>
+                <span>End Date</span>
+                <input
+                  type="date"
+                  value={form.taskEndDate}
+                  onChange={(event) => updateField('taskEndDate', event.target.value)}
                   required
                 />
               </label>
@@ -523,6 +650,8 @@ function TaskActionModal({ action, task, onClose }) {
                 />
               </label>
             </div>
+
+            <WeekdaySelector selectedDays={form.taskWeekdays} onToggle={toggleWeekday} />
 
             <label>
               <span>Task Definition</span>
@@ -593,6 +722,16 @@ function TaskModal({ createdBy, onClose }) {
     setStatus(null)
   }
 
+  function toggleWeekday(day) {
+    setForm((current) => ({
+      ...current,
+      taskWeekdays: current.taskWeekdays.includes(day)
+        ? current.taskWeekdays.filter((selectedDay) => selectedDay !== day)
+        : [...current.taskWeekdays, day],
+    }))
+    setStatus(null)
+  }
+
   async function handleSubmit(event) {
     event.preventDefault()
     setIsSaving(true)
@@ -642,11 +781,21 @@ function TaskModal({ createdBy, onClose }) {
 
           <div className="task-form-row">
             <label>
-              <span>Calendar Pick</span>
+              <span>Start Date</span>
               <input
                 type="date"
-                value={form.taskDate}
-                onChange={(event) => updateField('taskDate', event.target.value)}
+                value={form.taskStartDate}
+                onChange={(event) => updateField('taskStartDate', event.target.value)}
+                required
+              />
+            </label>
+
+            <label>
+              <span>End Date</span>
+              <input
+                type="date"
+                value={form.taskEndDate}
+                onChange={(event) => updateField('taskEndDate', event.target.value)}
                 required
               />
             </label>
@@ -671,6 +820,8 @@ function TaskModal({ createdBy, onClose }) {
               />
             </label>
           </div>
+
+          <WeekdaySelector selectedDays={form.taskWeekdays} onToggle={toggleWeekday} />
 
           <label>
             <span>Task Definition</span>
@@ -734,7 +885,7 @@ function TaskModal({ createdBy, onClose }) {
                 {visibleTasks?.map((task) => (
                   <tr key={task._id}>
                     <td data-label="Task">{task.taskName}</td>
-                    <td data-label="Date">{task.taskDate}</td>
+                    <td data-label="Date">{formatTaskDateRange(task)}</td>
                     <td data-label="Start">{task.taskStartTime || task.taskTime || '-'}</td>
                     <td data-label="End">{task.taskEndTime || '-'}</td>
                     <td data-label="Definition">{task.taskDefinition}</td>
@@ -807,6 +958,8 @@ function AuditModal({ createdBy, onClose }) {
   const [isSaving, setIsSaving] = useState(false)
   const [selectedAudit, setSelectedAudit] = useState(null)
   const [deleteTarget, setDeleteTarget] = useState(null)
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false)
+  const [reportForm, setReportForm] = useState(initialAuditReportForm)
 
   const activeAuditType = mode === 'edit' ? selectedAudit?.type : mode
   const isInflow = activeAuditType === 'inflow'
@@ -830,6 +983,53 @@ function AuditModal({ createdBy, onClose }) {
   function updateField(field, value) {
     setForm((current) => ({ ...current, [field]: value }))
     setStatus(null)
+  }
+
+  function updateReportField(field, value) {
+    setReportForm((current) => ({ ...current, [field]: value }))
+    setStatus(null)
+  }
+
+  function openReportModal() {
+    setReportForm(initialAuditReportForm)
+    setIsReportModalOpen(true)
+    setStatus(null)
+  }
+
+  function closeReportModal() {
+    setIsReportModalOpen(false)
+    setStatus(null)
+  }
+
+  function handleGenerateReport(type) {
+    if (!auditRecords) {
+      return
+    }
+
+    if (!reportForm.startDate || !reportForm.endDate) {
+      setStatus({ type: 'error', text: 'Start date and end date are required.' })
+      return
+    }
+
+    if (reportForm.endDate < reportForm.startDate) {
+      setStatus({ type: 'error', text: 'End date must be on or after start date.' })
+      return
+    }
+
+    const reportRecords = getAuditRecordsForReport(auditRecords, reportForm, type)
+    const reportSummary = getAuditSummary(reportRecords)
+
+    if (reportRecords.length === 0) {
+      setStatus({ type: 'error', text: `No ${getAuditTypeLabel(type).toLowerCase()} records found in that date range.` })
+      return
+    }
+
+    generateAuditReport(reportRecords, reportSummary, {
+      reportType: type,
+      typeLabel: getAuditTypeLabel(type),
+      dateRange: `${formatTaskDate(reportForm.startDate)} - ${formatTaskDate(reportForm.endDate)}`,
+    })
+    closeReportModal()
   }
 
   async function handleSubmit(event) {
@@ -946,7 +1146,7 @@ function AuditModal({ createdBy, onClose }) {
               className="task-save-button task-wide-button"
               type="button"
               disabled={!auditRecords || auditRecords.length === 0}
-              onClick={() => generateAuditReport(auditRecords ?? [], summary)}
+              onClick={openReportModal}
             >
               Generate Report PDF
             </button>
@@ -1047,6 +1247,70 @@ function AuditModal({ createdBy, onClose }) {
           </div>
         </section>
       )}
+
+      {isReportModalOpen && (
+        <section
+          className="task-alert-modal audit-report-modal"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="audit-report-title"
+        >
+          <div className="task-modal-header">
+            <div>
+              <p className="task-modal-eyebrow">Generate Report</p>
+              <h2 id="audit-report-title">Select date range</h2>
+            </div>
+            <button className="task-modal-close" type="button" aria-label="Close report modal" onClick={closeReportModal}>
+              x
+            </button>
+          </div>
+
+          <div className="task-form audit-report-form">
+            <div className="task-form-row audit-report-date-row">
+              <label>
+                <span>Start Date</span>
+                <input
+                  type="date"
+                  value={reportForm.startDate}
+                  onChange={(event) => updateReportField('startDate', event.target.value)}
+                  required
+                />
+              </label>
+
+              <label>
+                <span>End Date</span>
+                <input
+                  type="date"
+                  value={reportForm.endDate}
+                  onChange={(event) => updateReportField('endDate', event.target.value)}
+                  required
+                />
+              </label>
+            </div>
+
+            {status !== null && (
+              <p className={`task-form-status ${status.type}`} role="status">
+                {status.text}
+              </p>
+            )}
+
+            <div className="audit-report-actions">
+              <button className="audit-choice-button inflow" type="button" onClick={() => handleGenerateReport('inflow')}>
+                <span>Generate Money In Flow</span>
+              </button>
+              <button className="audit-choice-button outflow" type="button" onClick={() => handleGenerateReport('outflow')}>
+                <span>Generate Money Out Flow</span>
+              </button>
+            </div>
+
+            <div className="task-modal-actions">
+              <button className="task-secondary-button" type="button" onClick={closeReportModal}>
+                Cancel
+              </button>
+            </div>
+          </div>
+        </section>
+      )}
     </div>
   )
 }
@@ -1067,6 +1331,17 @@ function formatTaskDate(dateValue) {
     day: 'numeric',
     year: 'numeric',
   })
+}
+
+function formatTaskDateRange(task) {
+  const startDate = getTaskStartDate(task)
+  const endDate = getTaskEndDate(task)
+
+  if (!endDate || endDate === startDate) {
+    return formatTaskDate(startDate)
+  }
+
+  return `${formatTaskDate(startDate)} - ${formatTaskDate(endDate)}`
 }
 
 function formatTaskDateTime(timestamp) {
@@ -1326,7 +1601,8 @@ function WorkingTaskModal({ task, isCompleting, onComplete }) {
         <p className="task-alert-copy">{task.taskDefinition}</p>
 
         <dl className="task-working-details">
-          <TaskDetail label="Task Date" value={formatTaskDate(task.taskDate)} />
+          <TaskDetail label="Schedule" value={formatTaskDateRange(task)} />
+          <TaskDetail label="Days" value={formatTaskWeekdays(task)} />
           <TaskDetail label="Start Time" value={getTaskStartTime(task)} />
           <TaskDetail label="End Time" value={task.taskEndTime} />
           <TaskDetail label="Created By" value={task.createdBy} />
@@ -1487,7 +1763,7 @@ function TaskDashboard({ tasks, currentDate, onCompleteTask, completingTaskId, c
                 <article className="task-card" key={task._id}>
                   <div className="task-card-header">
                     <div>
-                      <p className="task-card-kicker">{formatTaskDate(task.taskDate)}</p>
+                      <p className="task-card-kicker">{formatTaskDateRange(task)}</p>
                       <h2>{task.taskName}</h2>
                     </div>
                     <span className={`task-status-pill ${isCompleted ? 'completed' : 'pending'}`}>
@@ -1498,7 +1774,8 @@ function TaskDashboard({ tasks, currentDate, onCompleteTask, completingTaskId, c
                   <p className="task-card-definition">{task.taskDefinition}</p>
 
                   <dl className="task-card-details">
-                    <TaskDetail label="Task Date" value={formatTaskDate(task.taskDate)} />
+                    <TaskDetail label="Schedule" value={formatTaskDateRange(task)} />
+                    <TaskDetail label="Days" value={formatTaskWeekdays(task)} />
                     <TaskDetail label="Start Time" value={getTaskStartTime(task)} />
                     <TaskDetail label="End Time" value={task.taskEndTime} />
                     <TaskDetail label="Created By" value={task.createdBy} />
@@ -1672,7 +1949,6 @@ export default function Admin({ userName = 'CINIFIX' }) {
 
       return (
         task.status !== 'completed' &&
-        task.taskDate === currentDate &&
         taskStartTime === currentTime
       )
     })
@@ -1681,7 +1957,7 @@ export default function Admin({ userName = 'CINIFIX' }) {
       return
     }
 
-    const reminderKey = `${dueTask._id}-${dueTask.taskDate}-${getTaskStartTime(dueTask)}`
+    const reminderKey = `${dueTask._id}-${currentDate}-${getTaskStartTime(dueTask)}`
 
     if (shownReminderKeysRef.current.has(reminderKey)) {
       return
@@ -1764,7 +2040,7 @@ export default function Admin({ userName = 'CINIFIX' }) {
     const completedTask = tasks?.find((task) => task._id === taskId)
 
     try {
-      await completeTask({ taskId })
+      await completeTask({ taskId, taskDate: currentDate, createdBy: userName })
       await logUserAction('Completed task', completedTask?.taskName ?? taskId)
       setCompletionStatus({ type: 'success', text: 'Task marked as completed.' })
       setReminderTask(null)

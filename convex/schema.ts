@@ -27,6 +27,9 @@ export default defineSchema({
   tasks: defineTable({
     taskName: v.string(),
     taskDate: v.string(),
+    taskStartDate: v.optional(v.string()),
+    taskEndDate: v.optional(v.string()),
+    taskWeekdays: v.optional(v.array(v.string())),
     taskTime: v.optional(v.string()),
     taskStartTime: v.optional(v.string()),
     taskEndTime: v.optional(v.string()),
@@ -39,6 +42,14 @@ export default defineSchema({
     .index("by_taskDate_and_taskStartTime", ["taskDate", "taskStartTime"])
     .index("by_createdBy", ["createdBy"])
     .index("by_createdBy_and_taskDate_and_taskStartTime", ["createdBy", "taskDate", "taskStartTime"]),
+  taskCompletions: defineTable({
+    taskId: v.id("tasks"),
+    taskDate: v.string(),
+    createdBy: v.optional(v.string()),
+    completedAt: v.number(),
+  })
+    .index("by_taskId_and_taskDate", ["taskId", "taskDate"])
+    .index("by_createdBy_and_taskDate", ["createdBy", "taskDate"]),
   audit: defineTable({
     type: v.string(),
     sourceName: v.string(),

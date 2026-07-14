@@ -503,7 +503,70 @@
 .task-form-row {
   display: grid;
   gap: 16px;
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.task-weekday-field {
+  border: 0;
+  margin: 0;
+  padding: 0;
+}
+
+.task-weekday-field legend {
+  color: #111827;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 20px;
+  margin-bottom: 8px;
+  padding: 0;
+}
+
+.task-weekday-grid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+
+.task-weekday-button {
+  background: #f9fafb;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  color: #374151;
+  cursor: pointer;
+  display: grid;
+  gap: 2px;
+  min-height: 58px;
+  padding: 8px 6px;
+  place-items: center;
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    color 160ms ease;
+}
+
+.task-weekday-button span {
+  font: 800 14px/18px 'Inter', sans-serif;
+}
+
+.task-weekday-button small {
+  color: #6b7280;
+  font: 700 10px/14px 'Inter', sans-serif;
+}
+
+.task-weekday-button:hover {
+  border-color: #ffea00;
+  box-shadow: 0 8px 20px rgb(15 23 42 / 8%);
+}
+
+.task-weekday-button.selected {
+  background: #ffea00;
+  border-color: #eab308;
+  color: #111827;
+}
+
+.task-weekday-button.selected small {
+  color: #374151;
 }
 
 .task-form-status {
@@ -898,6 +961,34 @@
   z-index: 90;
 }
 
+.audit-report-modal {
+  left: 50%;
+  max-width: 640px;
+  position: fixed;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 90;
+}
+
+.audit-report-form {
+  display: grid;
+  gap: 16px;
+}
+
+.audit-report-date-row {
+  grid-template-columns: 1fr 1fr;
+}
+
+.audit-report-actions {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: 1fr 1fr;
+}
+
+.audit-report-actions .audit-choice-button {
+  min-height: 92px;
+}
+
 .audit-success-panel {
   text-align: center;
 }
@@ -1087,6 +1178,11 @@
     grid-template-columns: 1fr;
   }
 
+  .audit-report-actions,
+  .audit-report-date-row {
+    grid-template-columns: 1fr;
+  }
+
   .audit-summary-grid {
     grid-template-columns: 1fr;
   }
@@ -1120,6 +1216,10 @@
 
   .task-form-row {
     grid-template-columns: 1fr;
+  }
+
+  .task-weekday-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .task-modal-actions {

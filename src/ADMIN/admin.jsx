@@ -1254,7 +1254,7 @@ export default function Admin({ userName = 'CINIFIX', userRole = 'admin' }) {
     const completedTask = tasks?.find((task) => task._id === taskId)
 
     try {
-      await completeTask({ taskId })
+      await completeTask({ taskId, taskDate: currentDate, createdBy: userName })
       await logUserAction('Completed task', completedTask?.taskName ?? taskId)
       setCompletionStatus({ type: 'success', text: 'Task marked as completed.' })
       setReminderTask(null)
