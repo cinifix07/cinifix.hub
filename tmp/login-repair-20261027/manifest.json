@@ -1,0 +1,117 @@
+{
+  "target": "dev:agile-gull-167",
+  "activated": false,
+  "includes": [
+    "secure secret-key sessions",
+    "authenticated account management",
+    "chat dependencies"
+  ],
+  "excludes": [
+    "pending narrative upgrade",
+    "production deployment",
+    "Vercel deployment",
+    "live test records"
+  ],
+  "files": [
+    {
+      "file": "convex/_generated/api.d.ts",
+      "sha256": "ac0570410241dc72cf1ad475c4e678ffbfb031d4d8f3b94f07f28698efe9559a"
+    },
+    {
+      "file": "convex/_generated/api.js",
+      "sha256": "28c342abeb270941f82e9de31ea66af7afb05ec7f75b97cc7c47d684e192c8d0"
+    },
+    {
+      "file": "convex/_generated/dataModel.d.ts",
+      "sha256": "db177073d16a4393c7a96bcdc3a2a904e88c2432d54d138ca7715cc431982c17"
+    },
+    {
+      "file": "convex/_generated/server.d.ts",
+      "sha256": "3564105d3570cf34e9e5c4b30ada8cdf3d4baa70e304ddba491b49639dc9e774"
+    },
+    {
+      "file": "convex/_generated/server.js",
+      "sha256": "b65fd18a4d8df0311a6efc4d6b6459d3cf96db486e6789c74879eff0c521a168"
+    },
+    {
+      "file": "convex/audit.ts",
+      "sha256": "7f952a1814f6ffe75f97b72705b70de1df1bb481b853238561a6240c077eb199"
+    },
+    {
+      "file": "convex/auth.config.ts",
+      "sha256": "c4044c9f7f3b810e420df27cfe25b9e8f5b3a049c00e44ded0ccfa52fd59303a"
+    },
+    {
+      "file": "convex/authHelpers.ts",
+      "sha256": "cc709df01d030ef422f7fd3809cf4ce9b4a7bfad91831b1114fa33d447f890f7"
+    },
+    {
+      "file": "convex/chat/conversations.ts",
+      "sha256": "83d1f73a5e350ad2e37768b44fc2ecca352eb4453454adc4376a6ad2eba0417a"
+    },
+    {
+      "file": "convex/chat/groups.ts",
+      "sha256": "e539a08c01157157c835da5828de0c7432c24ae78f58823d48b00c7916e27189"
+    },
+    {
+      "file": "convex/chat/limits.ts",
+      "sha256": "6e61da0e197c5ff0d37cab7d9ca8f1341d459fb8e15dc47ddb62470a0eb14bcc"
+    },
+    {
+      "file": "convex/chat/messages.ts",
+      "sha256": "20b1b12ebceb0f1b8c6aa29cacaa704b56852567f0617c6cab7f07e589073705"
+    },
+    {
+      "file": "convex/chat/presence.ts",
+      "sha256": "a53f45792267dbb0323676f8fb0d587089ee9c5a000188aa21d77f4877e02c82"
+    },
+    {
+      "file": "convex/chat/shared.ts",
+      "sha256": "087bf9dfd0bf6e084f6a1494d662c55c4449c7734af5542f5834d9b3400a3194"
+    },
+    {
+      "file": "convex/convex.config.ts",
+      "sha256": "94264d438f388ef68a1688f8a1c6761a42ac6c4334658cfe6e424deead1783b3"
+    },
+    {
+      "file": "convex/http.ts",
+      "sha256": "b7db77dc7cd78685fa3f10eb379e60732b1951b0c2a3e29d567b9e748cd05557"
+    },
+    {
+      "file": "convex/narratives.ts",
+      "sha256": "8ac8bfa0e51c8d9046ede2f91188a0e1aa91681fe5d7210ecbd4490713ea061f"
+    },
+    {
+      "file": "convex/schema.ts",
+      "sha256": "70baf50cb8706a35e6b3d605193fa5055f223080951338c6eaffcc7d9f22a127"
+    },
+    {
+      "file": "convex/sessionActions.ts",
+      "sha256": "db546064ebbe17e84c4c771c5f901be732d0a4b026ed4d0fc05c546c5d5dfbc9"
+    },
+    {
+      "file": "convex/sessions.ts",
+      "sha256": "8f147d745a6021200b91bfdb755713e38d13942d592d94cd590ac0ab08581c4f"
+    },
+    {
+      "file": "convex/tasks.ts",
+      "sha256": "8d6c6294f173275f3d0ecadc10b901e708a51baacb4306fd2fbb031869bd3414"
+    },
+    {
+      "file": "convex/userActions.ts",
+      "sha256": "f850173be0879780a29eca6978346b3f72a14719e88ed7f23c48d92bc7bacd44"
+    },
+    {
+      "file": "convex/userArchives.ts",
+      "sha256": "1199b516a114f2930622665218f1a852fc8f179f95fe22c40f0f049bb9606f74"
+    },
+    {
+      "file": "convex/userLogs.ts",
+      "sha256": "ee0e5246540bb30efac5e8670381ff18a861c98cc9fade9157780c49b3473ed5"
+    },
+    {
+      "file": "convex/users.ts",
+      "sha256": "6c6c7b515492fd3ca240f0d1626121d26cf324cb5df76d6bd40fa722aace8329"
+    }
+  ]
+}

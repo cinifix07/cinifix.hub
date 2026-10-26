@@ -1,5 +1,7 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { requireAdmin } from "./authHelpers";
+import { internal } from "./_generated/api";
 
 type UserRole = "admin" | "user";
 
@@ -16,6 +18,7 @@ export const list = query({
     limit: v.number(),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     const limit = Math.min(Math.max(args.limit, 1), 100);
     const archivedUsers = await ctx.db
       .query("archivedUsers")
@@ -39,6 +42,7 @@ export const restore = mutation({
     archivedUserId: v.id("archivedUsers"),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     const archivedUser = await ctx.db.get(args.archivedUserId);
 
     if (archivedUser === null) {
@@ -52,17 +56,20 @@ export const restore = mutation({
       )
       .unique();
 
-    if (existingUser !== null) {
+    if (existingUser !== null && (existingUser._id !== archivedUser.originalUserId || existingUser.archivedAt === undefined)) {
       throw new Error("A user with this name already exists.");
     }
 
-    const userId = await ctx.db.insert("users", {
+    const restored = {
       name: archivedUser.name,
       normalizedName: archivedUser.normalizedName,
       role: getUserRole(archivedUser.role, archivedUser.normalizedName),
       passwordHash: archivedUser.passwordHash,
       passwordSalt: archivedUser.passwordSalt,
-    });
+    };
+    const userId = existingUser?._id ?? await ctx.db.insert("users", restored);
+    if (existingUser) await ctx.db.patch(userId, { ...restored, archivedAt: undefined, authVersion: (existingUser.authVersion ?? 0) + 1 });
+    await ctx.scheduler.runAfter(0, internal.chat.groups.enrollFuture, { userId, cursor: null });
 
     await ctx.db.delete(args.archivedUserId);
 
@@ -75,6 +82,7 @@ export const remove = mutation({
     archivedUserId: v.id("archivedUsers"),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     await ctx.db.delete(args.archivedUserId);
 
     return args.archivedUserId;

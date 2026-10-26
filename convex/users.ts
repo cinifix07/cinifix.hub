@@ -1,4 +1,8 @@
 import { v } from "convex/values";
+import { paginationOptsValidator } from "convex/server";
+import { internal } from "./_generated/api";
+import { requireAdmin, userRole } from "./authHelpers";
+import { checkAdminGroupExit } from "./chat/shared";
 import { internalMutation, internalQuery, mutation, query } from "./_generated/server";
 
 type UserRole = "admin" | "user";
@@ -20,6 +24,7 @@ export const create = internalMutation({
     passwordSalt: v.string(),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     const existingUser = await ctx.db
       .query("users")
       .withIndex("by_normalizedName", (q) =>
@@ -31,13 +36,15 @@ export const create = internalMutation({
       throw new Error("A user with this name already exists.");
     }
 
-    return await ctx.db.insert("users", {
+    const userId = await ctx.db.insert("users", {
       name: args.name,
       normalizedName: args.normalizedName,
       role: getUserRole(args.role, args.normalizedName),
       passwordHash: args.passwordHash,
       passwordSalt: args.passwordSalt,
     });
+    await ctx.scheduler.runAfter(0, internal.chat.groups.enrollFuture, { userId, cursor: null });
+    return userId;
   },
 });
 
@@ -60,8 +67,9 @@ export const list = query({
     limit: v.number(),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     const limit = Math.min(Math.max(args.limit, 1), 100);
-    const users = await ctx.db.query("users").order("desc").take(limit);
+    const users = await ctx.db.query("users").withIndex("by_archivedAt", q => q.eq("archivedAt", undefined)).order("desc").take(limit);
 
     return users.map((user) => ({
       _id: user._id,
@@ -83,6 +91,10 @@ export const update = internalMutation({
     passwordSalt: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
+    const target = await ctx.db.get(args.userId);
+    if (!target || target.archivedAt !== undefined) throw new Error("User not found.");
+    if (userRole(target) === "admin" && getUserRole(args.role, args.normalizedName) !== "admin") await checkAdminGroupExit(ctx, target._id);
     const existingUser = await ctx.db
       .query("users")
       .withIndex("by_normalizedName", (q) =>
@@ -98,6 +110,7 @@ export const update = internalMutation({
       name: args.name,
       normalizedName: args.normalizedName,
       role: getUserRole(args.role, args.normalizedName),
+      authVersion: (target.authVersion ?? 0) + 1,
     };
 
     if (args.passwordHash !== undefined && args.passwordSalt !== undefined) {
@@ -121,11 +134,13 @@ export const remove = mutation({
     userId: v.id("users"),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     const user = await ctx.db.get(args.userId);
 
-    if (user === null) {
+    if (user === null || user.archivedAt !== undefined) {
       throw new Error("User not found.");
     }
+    if (userRole(user) === "admin") await checkAdminGroupExit(ctx, user._id);
 
     await ctx.db.insert("archivedUsers", {
       originalUserId: user._id,
@@ -137,7 +152,7 @@ export const remove = mutation({
       archivedAt: Date.now(),
     });
 
-    await ctx.db.delete(args.userId);
+    await ctx.db.patch(args.userId, { archivedAt: Date.now(), authVersion: (user.authVersion ?? 0) + 1 });
 
     return args.userId;
   },
@@ -145,16 +160,18 @@ export const remove = mutation({
 
 export const listForSecretKeyCheck = internalQuery({
   args: {
-    limit: v.number(),
+    paginationOpts: paginationOptsValidator,
   },
   handler: async (ctx, args) => {
-    const users = await ctx.db.query("users").take(args.limit);
+    const users = await ctx.db.query("users").withIndex("by_archivedAt", q => q.eq("archivedAt", undefined)).paginate(args.paginationOpts);
 
-    return users.map((user) => ({
+    return { ...users, page: users.page.map((user) => ({
+      _id: user._id,
+      authVersion: user.authVersion,
       name: user.name,
       role: getUserRole(user.role, user.normalizedName),
       passwordHash: user.passwordHash,
       passwordSalt: user.passwordSalt,
-    }));
+    })) };
   },
 });

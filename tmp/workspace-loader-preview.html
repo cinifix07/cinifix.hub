@@ -1,0 +1,8 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>CINIFIX loader · local visual check</title><style>body{margin:0}</style></head>
+<body><div id="root"></div><script type="module">
+import React from 'react';
+import { createRoot } from 'react-dom/client';
+import WorkspaceLoader from '/src/ui/workspace-loader.jsx';
+createRoot(document.getElementById('root')).render(React.createElement(WorkspaceLoader, { ready: false, verified: true, deadline: Date.now() + 60000, onCancel: () => history.back() }));
+</script></body></html>

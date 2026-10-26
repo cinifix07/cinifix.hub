@@ -1,0 +1,17 @@
+{
+  "deployment": "dev:agile-gull-167",
+  "checkedAt": "2026-10-26T16:55:17.955Z",
+  "requiredFunctionsAvailable": true,
+  "publicJwksValid": true,
+  "publicJwksHasNoPrivateFields": true,
+  "storedSigningKeyMatchesPublishedKey": true,
+  "anonymousSessionIsNull": true,
+  "anonymousChatReadRejected": true,
+  "pendingNarrativeEventsExcluded": true,
+  "ownerAccount": {
+    "name": "CINIFIX",
+    "role": "admin",
+    "archived": false
+  },
+  "liveLoginTested": false
+}

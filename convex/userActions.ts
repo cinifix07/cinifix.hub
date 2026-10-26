@@ -4,6 +4,9 @@ import { randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
 import { v } from "convex/values";
 import { internal } from "./_generated/api";
 import { action } from "./_generated/server";
+import { issueLoginSession } from "./sessionActions";
+import type { LoginSession } from "./sessionActions";
+import type { Doc } from "./_generated/dataModel";
 
 const PASSWORD_KEY_LENGTH = 64;
 type UserRole = "admin" | "user";
@@ -33,6 +36,7 @@ export const createUser = action({
     role: v.optional(v.union(v.literal("admin"), v.literal("user"))),
   },
   handler: async (ctx, args) => {
+    await ctx.runQuery(internal.sessions.admin, {});
     const name = args.name.trim();
     const normalizedName = normalizeName(name);
 
@@ -63,6 +67,7 @@ export const updateUser = action({
     role: v.optional(v.union(v.literal("admin"), v.literal("user"))),
   },
   handler: async (ctx, args) => {
+    await ctx.runQuery(internal.sessions.admin, {});
     const name = args.name.trim();
     const normalizedName = normalizeName(name);
 
@@ -101,9 +106,10 @@ export const verifyUser = action({
     password: v.string(),
   },
   handler: async (ctx, args) => {
+    await ctx.runMutation(internal.chat.limits.loginAttempt, { key: "login" });
     const normalizedName = normalizeName(args.name);
 
-    if (normalizedName.length === 0) {
+    if (normalizedName.length === 0 || args.password.length > 1024) {
       return false;
     }
 
@@ -111,7 +117,7 @@ export const verifyUser = action({
       normalizedName,
     });
 
-    if (user === null) {
+    if (user === null || user.archivedAt !== undefined) {
       return false;
     }
 
@@ -133,29 +139,35 @@ export const verifySecretKey = action({
   args: {
     password: v.string(),
   },
-  handler: async (ctx, args) => {
-    if (args.password.length === 0) {
+  handler: async (ctx, args): Promise<LoginSession | { ok: false; name: null; role: null }> => {
+    if (args.password.length === 0 || args.password.length > 1024) {
       return { ok: false, name: null, role: null };
     }
 
-    const users = await ctx.runQuery(internal.users.listForSecretKeyCheck, {
-      limit: 100,
-    });
+    await ctx.runMutation(internal.chat.limits.loginAttempt, { key: "login" });
+    let cursor: string | null = null;
+    let match: Pick<Doc<"users">, "_id" | "authVersion" | "name" | "passwordHash" | "passwordSalt"> | null = null;
+    do {
+      const result = await ctx.runQuery(internal.users.listForSecretKeyCheck, { paginationOpts: { cursor, numItems: 50 } });
+      for (const user of result.page) {
+        const expectedHash = Buffer.from(user.passwordHash, "hex");
+        const suppliedHash = Buffer.from(
+          hashPassword(args.password, user.passwordSalt),
+          "hex",
+        );
 
-    for (const user of users) {
-      const expectedHash = Buffer.from(user.passwordHash, "hex");
-      const suppliedHash = Buffer.from(
-        hashPassword(args.password, user.passwordSalt),
-        "hex",
-      );
-
-      if (
-        expectedHash.length === suppliedHash.length &&
-        timingSafeEqual(expectedHash, suppliedHash)
-      ) {
-        return { ok: true, name: user.name, role: user.role };
+        if (
+          expectedHash.length === suppliedHash.length &&
+          timingSafeEqual(expectedHash, suppliedHash)
+        ) {
+          if (match) throw new Error("This secret key matches multiple accounts. Contact CINIFIX TECH for a unique key.");
+          match = user;
+        }
       }
-    }
+      cursor = result.isDone ? null : result.continueCursor;
+    } while (cursor);
+
+    if (match) return await issueLoginSession(ctx, match);
 
     return { ok: false, name: null, role: null };
   },

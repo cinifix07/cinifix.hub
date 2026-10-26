@@ -4,107 +4,45 @@ import { api } from '../../convex/_generated/api'
 import alertSoundUrl from '../assets/alert.mp3'
 import {
   AuditModal,
-  BrandLogo,
   formatTaskDate,
   formatTaskDateTime,
   getCurrentMinuteKey,
   getGreeting,
   getTaskStartTime,
   playAlertSound,
-  SidebarIcon,
   TaskDashboard,
   TaskModal,
   TaskReminderModal,
   WorkingTaskModal,
 } from '../users/users.jsx'
+import { DashboardShell } from '../ui/dashboard.jsx'
+import { Pencil, Trash2, RotateCcw, X } from 'lucide-react'
+import NarrativeReports from '../reports/narrative-reports.jsx'
 import './admin.css'
 
 const topNavItems = [
   {
-    title: 'Ads Manager',
-    active: true,
-    icon: (
-      <path
-        d="M9 19v-6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2zm0 0V9a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v10m-6 0a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2m0 0V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2z"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="2"
-      />
-    ),
+    "title": "Ads Manager"
   },
   {
-    title: 'Reporting',
-    icon: (
-      <path
-        d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2z"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="2"
-      />
-    ),
+    "title": "Reporting"
   },
   {
-    title: 'Audience',
-    icon: (
-      <path
-        d="M12 4.354a4 4 0 1 1 0 5.292M15 21H3v-1a6 6 0 0 1 12 0v1zm0 0h6v-1a6 6 0 0 0-9-5.197M13 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0z"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="2"
-      />
-    ),
+    "title": "Audience"
   },
   {
-    title: 'Business News',
-    icon: (
-      <path
-        d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="2"
-      />
-    ),
+    "title": "Business News"
   },
   {
-    title: 'Campaigns',
-    icon: (
-      <path
-        d="M11 5.882V19.24a1.76 1.76 0 0 1-3.417.592l-2.147-6.15M18 13a3 3 0 1 0 0-6M5.436 13.683A4.001 4.001 0 0 1 7 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 0 1-1.564-.317z"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="2"
-      />
-    ),
+    "title": "Campaigns"
   },
   {
-    title: 'Billing',
-    icon: (
-      <path
-        d="M3 10h18M7 15h1m4 0h1m-7 4h12a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2z"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="2"
-      />
-    ),
+    "title": "Billing"
   },
   {
-    title: 'Business Tools',
-    icon: (
-      <path
-        d="M19 11H5m14 0a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2m14 0V9a2 2 0 0 0-2-2M5 11V9a2 2 0 0 1 2-2m0 0V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v2M7 7h10"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="2"
-      />
-    ),
-  },
+    "title": "Business Tools"
+  }
 ]
-
-const bottomNavItems = []
-
-const initialNarrativeForm = {
-  narrative: '',
-}
 
 const initialUserForm = {
   name: '',
@@ -167,289 +105,6 @@ function TablePagination({ currentPage, records, onPageChange }) {
   )
 }
 
-function generateNarrativesPdf(records) {
-  const reportWindow = window.open('', '_blank')
-
-  if (!reportWindow) {
-    return
-  }
-
-  const rows = records
-    .map(
-      (record) => `
-        <tr>
-          <td>${formatTaskDate(record.reportDate)}</td>
-          <td>${record.narrative}</td>
-          <td>${record.createdBy}</td>
-          <td>${record.taskCount}</td>
-          <td>${formatTaskDateTime(record.updatedAt || record.createdAt)}</td>
-        </tr>
-      `,
-    )
-    .join('')
-
-  reportWindow.document.write(`
-    <!doctype html>
-    <html>
-      <head>
-        <title>CINI FIX Narrative Reports</title>
-        <style>
-          body { font-family: Arial, sans-serif; padding: 32px; color: #111827; }
-          h1 { margin: 0 0 8px; }
-          table { border-collapse: collapse; width: 100%; margin-top: 24px; }
-          th, td { border: 1px solid #d1d5db; padding: 10px; text-align: left; vertical-align: top; }
-          th { background: #f3f4f6; }
-        </style>
-      </head>
-      <body>
-        <h1>CINI FIX Narrative Reports</h1>
-        <p>Generated ${new Date().toLocaleString()}</p>
-        <table>
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th>Narrative</th>
-              <th>Created By</th>
-              <th>Tasks</th>
-              <th>Created</th>
-            </tr>
-          </thead>
-          <tbody>${rows}</tbody>
-        </table>
-      </body>
-    </html>
-  `)
-  reportWindow.document.close()
-  reportWindow.focus()
-  reportWindow.print()
-}
-
-function BusinessNewsModal({ onClose, onLog }) {
-  const narratives = useQuery(api.narratives.list, { limit: 100 })
-  const updateNarrative = useMutation(api.narratives.update)
-  const removeNarrative = useMutation(api.narratives.remove)
-  const [currentPage, setCurrentPage] = useState(1)
-  const [editingNarrative, setEditingNarrative] = useState(null)
-  const [deleteTarget, setDeleteTarget] = useState(null)
-  const [form, setForm] = useState(initialNarrativeForm)
-  const [status, setStatus] = useState(null)
-  const [isSaving, setIsSaving] = useState(false)
-  const safeCurrentPage = Math.min(currentPage, getTablePageCount(narratives))
-  const visibleNarratives = getTablePage(narratives, safeCurrentPage)
-
-  function openEdit(record) {
-    setEditingNarrative(record)
-    setForm({ narrative: record.narrative })
-    setStatus(null)
-  }
-
-  async function handleSave(event) {
-    event.preventDefault()
-
-    if (!editingNarrative) {
-      return
-    }
-
-    setIsSaving(true)
-    setStatus(null)
-
-    try {
-      await updateNarrative({
-        narrativeId: editingNarrative._id,
-        reportDate: editingNarrative.reportDate,
-        createdBy: editingNarrative.createdBy,
-        taskCount: editingNarrative.taskCount,
-        narrative: form.narrative,
-      })
-      await onLog?.('Updated narrative report', editingNarrative.reportDate)
-      setEditingNarrative(null)
-      setForm(initialNarrativeForm)
-      setStatus({ type: 'success', text: 'Narrative updated.' })
-    } catch (error) {
-      setStatus({
-        type: 'error',
-        text: error instanceof Error ? error.message : 'Unable to update narrative.',
-      })
-    } finally {
-      setIsSaving(false)
-    }
-  }
-
-  async function handleDelete() {
-    if (!deleteTarget) {
-      return
-    }
-
-    setIsSaving(true)
-    setStatus(null)
-
-    try {
-      await removeNarrative({ narrativeId: deleteTarget._id })
-      await onLog?.('Deleted narrative report', deleteTarget.reportDate)
-      setDeleteTarget(null)
-      setStatus({ type: 'success', text: 'Narrative deleted.' })
-    } catch (error) {
-      setStatus({
-        type: 'error',
-        text: error instanceof Error ? error.message : 'Unable to delete narrative.',
-      })
-    } finally {
-      setIsSaving(false)
-    }
-  }
-
-  return (
-    <div className="task-modal-backdrop" role="presentation">
-      <section className="task-alert-modal users-modal" role="dialog" aria-modal="true" aria-labelledby="business-news-title">
-        <div className="task-modal-header">
-          <div>
-            <p className="task-modal-eyebrow">Business News</p>
-            <h2 id="business-news-title">Narrative Reports</h2>
-          </div>
-          <button className="task-modal-close" type="button" aria-label="Close narrative reports modal" onClick={onClose}>
-            x
-          </button>
-        </div>
-
-        {status !== null && (
-          <p className={`task-form-status ${status.type}`} role="status">
-            {status.text}
-          </p>
-        )}
-
-        {editingNarrative !== null ? (
-          <form className="task-form" onSubmit={handleSave}>
-            <label>
-              <span>Narrative Report</span>
-              <textarea
-                rows="6"
-                value={form.narrative}
-                onChange={(event) => setForm({ narrative: event.target.value })}
-                required
-              />
-            </label>
-
-            <div className="task-modal-actions">
-              <button className="task-secondary-button" type="button" onClick={() => setEditingNarrative(null)}>
-                Cancel
-              </button>
-              <button className="task-save-button" type="submit" disabled={isSaving}>
-                {isSaving ? 'Saving...' : 'Save Changes'}
-              </button>
-            </div>
-          </form>
-        ) : (
-          <div className="task-table-section users-table-section">
-            <div className="task-table-header">
-              <h3>Convex Narrative Table</h3>
-              <span>
-                {narratives === undefined
-                  ? 'Loading...'
-                  : `${narratives.length} report${narratives.length === 1 ? '' : 's'}`}
-              </span>
-            </div>
-
-            <div className="users-table-toolbar">
-              <button
-                className="task-save-button"
-                type="button"
-                disabled={!narratives || narratives.length === 0}
-                onClick={() => generateNarrativesPdf(narratives ?? [])}
-              >
-                Save PDF
-              </button>
-            </div>
-
-            <div className="task-table-wrap">
-              <table className="task-table users-table">
-                <thead>
-                  <tr>
-                    <th>Date</th>
-                    <th>Narrative</th>
-                    <th>Created By</th>
-                    <th>Tasks</th>
-                    <th>Created</th>
-                    <th>Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {narratives === undefined && (
-                    <tr>
-                      <td colSpan="6">Loading reports...</td>
-                    </tr>
-                  )}
-
-                  {narratives !== undefined && narratives.length === 0 && (
-                    <tr>
-                      <td colSpan="6">No narrative reports saved yet.</td>
-                    </tr>
-                  )}
-
-                  {visibleNarratives?.map((record) => (
-                    <tr key={record._id}>
-                      <td data-label="Date">{formatTaskDate(record.reportDate)}</td>
-                      <td data-label="Narrative">{record.narrative}</td>
-                      <td data-label="Created By">{record.createdBy}</td>
-                      <td data-label="Tasks">{record.taskCount}</td>
-                      <td data-label="Created">{formatTaskDateTime(record.updatedAt || record.createdAt)}</td>
-                      <td data-label="Action">
-                        <div className="task-table-actions">
-                          <button className="task-icon-button" type="button" aria-label={`Edit narrative ${record.reportDate}`} onClick={() => openEdit(record)}>
-                            <svg viewBox="0 0 24 24" aria-hidden="true">
-                              <path d="M16.862 4.487 19.5 7.125 8.75 17.875 5.5 18.5l.625-3.25L16.862 4.487z" />
-                              <path d="M14.75 6.6 17.4 9.25" />
-                            </svg>
-                          </button>
-                          <button className="task-icon-button danger" type="button" aria-label={`Delete narrative ${record.reportDate}`} onClick={() => setDeleteTarget(record)}>
-                            <svg viewBox="0 0 24 24" aria-hidden="true">
-                              <path d="M4 7h16" />
-                              <path d="M10 11v6" />
-                              <path d="M14 11v6" />
-                              <path d="M6 7l1 14h10l1-14" />
-                              <path d="M9 7V4h6v3" />
-                            </svg>
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            <TablePagination currentPage={safeCurrentPage} records={narratives} onPageChange={setCurrentPage} />
-          </div>
-        )}
-      </section>
-
-      {deleteTarget !== null && (
-        <section className="task-alert-modal audit-delete-modal" role="alertdialog" aria-modal="true" aria-labelledby="narrative-delete-title">
-          <div className="task-modal-header">
-            <div>
-              <p className="task-modal-eyebrow">Delete Narrative</p>
-              <h2 id="narrative-delete-title">Delete this report?</h2>
-            </div>
-            <button className="task-modal-close" type="button" aria-label="Close delete modal" onClick={() => setDeleteTarget(null)}>
-              x
-            </button>
-          </div>
-          <p className="task-alert-copy">
-            This will permanently delete the narrative for <strong>{formatTaskDate(deleteTarget.reportDate)}</strong>.
-          </p>
-          <div className="task-modal-actions">
-            <button className="task-secondary-button" type="button" onClick={() => setDeleteTarget(null)}>
-              Cancel
-            </button>
-            <button className="task-danger-button" type="button" disabled={isSaving} onClick={handleDelete}>
-              {isSaving ? 'Deleting...' : 'Delete'}
-            </button>
-          </div>
-        </section>
-      )}
-    </div>
-  )
-}
-
 function CampaignsModal({ onClose }) {
   const logs = useQuery(api.userLogs.list, { limit: 100 })
   const [currentPage, setCurrentPage] = useState(1)
@@ -464,9 +119,7 @@ function CampaignsModal({ onClose }) {
             <p className="task-modal-eyebrow">Campaigns</p>
             <h2 id="campaigns-title">User Logs</h2>
           </div>
-          <button className="task-modal-close" type="button" aria-label="Close user logs modal" onClick={onClose}>
-            x
-          </button>
+          <button className="task-modal-close" type="button" aria-label="Close user logs modal" onClick={onClose}><X size={19} aria-hidden="true" /></button>
         </div>
 
         <div className="task-table-section users-table-section">
@@ -582,9 +235,7 @@ function ArchiveModal({ onClose, onLog }) {
             <p className="task-modal-eyebrow">Billing</p>
             <h2 id="archive-modal-title">Archive</h2>
           </div>
-          <button className="task-modal-close" type="button" aria-label="Close archive modal" onClick={onClose}>
-            x
-          </button>
+          <button className="task-modal-close" type="button" aria-label="Close archive modal" onClick={onClose}><X size={19} aria-hidden="true" /></button>
         </div>
 
         {status !== null && (
@@ -636,20 +287,10 @@ function ArchiveModal({ onClose, onLog }) {
                     <td data-label="Action">
                       <div className="task-table-actions">
                         <button className="task-icon-button restore" type="button" aria-label={`Restore ${user.name}`} onClick={() => setRestoreTarget(user)}>
-                          <svg viewBox="0 0 24 24" aria-hidden="true">
-                            <path d="M3 12a9 9 0 1 0 3-6.708" />
-                            <path d="M3 4v6h6" />
-                            <path d="M12 8v5l3 2" />
-                          </svg>
+                          <RotateCcw size={18} aria-hidden="true" />
                         </button>
                         <button className="task-icon-button danger" type="button" aria-label={`Delete ${user.name}`} onClick={() => setDeleteTarget(user)}>
-                          <svg viewBox="0 0 24 24" aria-hidden="true">
-                            <path d="M4 7h16" />
-                            <path d="M10 11v6" />
-                            <path d="M14 11v6" />
-                            <path d="M6 7l1 14h10l1-14" />
-                            <path d="M9 7V4h6v3" />
-                          </svg>
+                          <Trash2 size={18} aria-hidden="true" />
                         </button>
                       </div>
                     </td>
@@ -670,9 +311,7 @@ function ArchiveModal({ onClose, onLog }) {
               <p className="task-modal-eyebrow">Restore User</p>
               <h2 id="restore-user-title">Restore this user?</h2>
             </div>
-            <button className="task-modal-close" type="button" aria-label="Close restore modal" onClick={() => setRestoreTarget(null)}>
-              x
-            </button>
+            <button className="task-modal-close" type="button" aria-label="Close restore modal" onClick={() => setRestoreTarget(null)}><X size={19} aria-hidden="true" /></button>
           </div>
           <p className="task-alert-copy">
             This will restore <strong>{restoreTarget.name}</strong> back to the users table.
@@ -695,9 +334,7 @@ function ArchiveModal({ onClose, onLog }) {
               <p className="task-modal-eyebrow">Delete Archive</p>
               <h2 id="delete-archive-title">Permanently delete?</h2>
             </div>
-            <button className="task-modal-close" type="button" aria-label="Close delete modal" onClick={() => setDeleteTarget(null)}>
-              x
-            </button>
+            <button className="task-modal-close" type="button" aria-label="Close delete modal" onClick={() => setDeleteTarget(null)}><X size={19} aria-hidden="true" /></button>
           </div>
           <p className="task-alert-copy">
             This will permanently delete <strong>{deleteTarget.name}</strong> from the archive logs.
@@ -839,9 +476,7 @@ function BusinessToolsModal({ onClose, onLog }) {
             <p className="task-modal-eyebrow">Business Tools</p>
             <h2 id="users-modal-title">{isAdding ? 'Add User' : isEditing ? 'Edit User' : 'Users'}</h2>
           </div>
-          <button className="task-modal-close" type="button" aria-label="Close business tools modal" onClick={onClose}>
-            x
-          </button>
+          <button className="task-modal-close" type="button" aria-label="Close business tools modal" onClick={onClose}><X size={19} aria-hidden="true" /></button>
         </div>
 
         {status !== null && (
@@ -894,7 +529,7 @@ function BusinessToolsModal({ onClose, onLog }) {
         ) : (
           <div className="task-table-section users-table-section">
             <div className="task-table-header">
-              <h3>Convex Users Table</h3>
+              <h3>User directory</h3>
               <span>{users === undefined ? 'Loading...' : `${users.length} user${users.length === 1 ? '' : 's'}`}</span>
             </div>
 
@@ -937,19 +572,10 @@ function BusinessToolsModal({ onClose, onLog }) {
                       <td data-label="Action">
                         <div className="task-table-actions">
                           <button className="task-icon-button" type="button" aria-label={`Edit ${user.name}`} onClick={() => openEdit(user)}>
-                            <svg viewBox="0 0 24 24" aria-hidden="true">
-                              <path d="M16.862 4.487 19.5 7.125 8.75 17.875 5.5 18.5l.625-3.25L16.862 4.487z" />
-                              <path d="M14.75 6.6 17.4 9.25" />
-                            </svg>
+                            <Pencil size={18} aria-hidden="true" />
                           </button>
                           <button className="task-icon-button danger" type="button" aria-label={`Delete ${user.name}`} onClick={() => setDeleteTarget(user)}>
-                            <svg viewBox="0 0 24 24" aria-hidden="true">
-                              <path d="M4 7h16" />
-                              <path d="M10 11v6" />
-                              <path d="M14 11v6" />
-                              <path d="M6 7l1 14h10l1-14" />
-                              <path d="M9 7V4h6v3" />
-                            </svg>
+                            <Trash2 size={18} aria-hidden="true" />
                           </button>
                         </div>
                       </td>
@@ -971,9 +597,7 @@ function BusinessToolsModal({ onClose, onLog }) {
               <p className="task-modal-eyebrow">Delete User</p>
               <h2 id="users-delete-title">Delete this user?</h2>
             </div>
-            <button className="task-modal-close" type="button" aria-label="Close delete modal" onClick={() => setDeleteTarget(null)}>
-              x
-            </button>
+            <button className="task-modal-close" type="button" aria-label="Close delete modal" onClick={() => setDeleteTarget(null)}><X size={19} aria-hidden="true" /></button>
           </div>
           <p className="task-alert-copy">
             This will archive <strong>{deleteTarget.name}</strong> from the users table.
@@ -1019,9 +643,7 @@ function NarrativeReportModal({ currentDate, existingNarrative = '', isSaving, o
             <p className="task-modal-eyebrow">Narrative Report</p>
             <h2 id="narrative-report-title">Create a narrative report for your works today</h2>
           </div>
-          <button className="task-modal-close" type="button" aria-label="Close narrative report modal" onClick={onClose}>
-            x
-          </button>
+          <button className="task-modal-close" type="button" aria-label="Close narrative report modal" onClick={onClose}><X size={19} aria-hidden="true" /></button>
         </div>
 
         <p className="task-alert-copy">
@@ -1072,9 +694,7 @@ function NarrativeSuccessModal({ onClose }) {
             <p className="task-modal-eyebrow">Narrative Report</p>
             <h2 id="narrative-success-title">Saved Success</h2>
           </div>
-          <button className="task-modal-close" type="button" aria-label="Close success modal" onClick={onClose}>
-            x
-          </button>
+          <button className="task-modal-close" type="button" aria-label="Close success modal" onClick={onClose}><X size={19} aria-hidden="true" /></button>
         </div>
 
         <p className="task-alert-copy">Your narrative report was saved successfully.</p>
@@ -1338,67 +958,41 @@ export default function Admin({ userName = 'CINIFIX', userRole = 'admin' }) {
     }
   }
 
+  function handleNavigate(title) {
+    setIsTaskModalOpen(title === 'Audience')
+    setIsAuditModalOpen(title === 'Reporting')
+    setIsBusinessNewsModalOpen(title === 'Business News')
+    setIsCampaignsModalOpen(title === 'Campaigns')
+    setIsBillingModalOpen(title === 'Billing')
+    setIsBusinessToolsModalOpen(title === 'Business Tools')
+  }
+
+  const activeNav = isTaskModalOpen ? 'Audience' : isAuditModalOpen ? 'Reporting' : isBusinessNewsModalOpen ? 'Business News' : isCampaignsModalOpen ? 'Campaigns' : isBillingModalOpen ? 'Billing' : isBusinessToolsModalOpen ? 'Business Tools' : 'Ads Manager'
+
   return (
-    <div className="admin-shell">
-      <aside className={`admin-sidebar${isSidebarOpen ? ' expanded' : ' collapsed'}`} data-purpose="main-navigation">
-        <BrandLogo isExpanded={isSidebarOpen} onClick={() => setIsSidebarOpen((current) => !current)} />
-
-        {isSidebarOpen && (
-          <nav className="admin-sidebar-nav" aria-label="Primary">
-            {topNavItems.map((item) => (
-              <SidebarIcon
-                item={item}
-                key={item.title}
-                onClick={
-                  item.title === 'Audience'
-                    ? () => setIsTaskModalOpen(true)
-                    : item.title === 'Reporting'
-                      ? () => setIsAuditModalOpen(true)
-                      : item.title === 'Business News'
-                        ? () => setIsBusinessNewsModalOpen(true)
-                        : item.title === 'Campaigns'
-                          ? () => setIsCampaignsModalOpen(true)
-                          : item.title === 'Billing'
-                            ? () => setIsBillingModalOpen(true)
-                            : item.title === 'Business Tools'
-                              ? () => setIsBusinessToolsModalOpen(true)
-                              : undefined
-                }
-              />
-            ))}
-          </nav>
-        )}
-
-        {isSidebarOpen && (
-          <nav className="admin-sidebar-nav bottom" aria-label="Secondary">
-            {bottomNavItems.map((item) => (
-              <SidebarIcon item={item} key={item.title} />
-            ))}
-          </nav>
-        )}
-      </aside>
-
-      <main className="admin-workspace">
-        <header className="admin-topbar" data-purpose="top-navigation-bar">
-          <p className="admin-greeting">
-            Hello {userName}, {greeting}!
-            <span className="admin-role-label">{userRole === 'admin' ? 'Admin' : 'User'}</span>
-          </p>
-        </header>
-
-        <TaskDashboard
-          tasks={tasks}
-          currentDate={currentDate}
-          completionStatus={completionStatus}
-          completingTaskId={completingTaskId}
-          onCompleteTask={handleCompleteTask}
-        />
-      </main>
+    <DashboardShell
+      userName={userName}
+      role={userRole === 'admin' ? 'Admin' : 'User'}
+      greeting={greeting}
+      items={topNavItems}
+      activeNav={activeNav}
+      isSidebarOpen={isSidebarOpen}
+      setIsSidebarOpen={setIsSidebarOpen}
+      onNavigate={handleNavigate}
+    >
+      <TaskDashboard
+        tasks={tasks}
+        currentDate={currentDate}
+        completionStatus={completionStatus}
+        completingTaskId={completingTaskId}
+        onCompleteTask={handleCompleteTask}
+        onManageTasks={() => setIsTaskModalOpen(true)}
+      />
 
       {isTaskModalOpen && <TaskModal createdBy={userName} onClose={() => setIsTaskModalOpen(false)} />}
       {isAuditModalOpen && <AuditModal createdBy={userName} onClose={() => setIsAuditModalOpen(false)} />}
       {isBusinessNewsModalOpen && (
-        <BusinessNewsModal onClose={() => setIsBusinessNewsModalOpen(false)} onLog={logUserAction} />
+        <NarrativeReports userName={userName} isAdmin={userRole === 'admin'} onClose={() => setIsBusinessNewsModalOpen(false)} onLog={logUserAction} />
       )}
       {isBusinessToolsModalOpen && (
         <BusinessToolsModal onClose={() => setIsBusinessToolsModalOpen(false)} onLog={logUserAction} />
@@ -1425,6 +1019,6 @@ export default function Admin({ userName = 'CINIFIX', userRole = 'admin' }) {
           onComplete={() => handleCompleteTask(activeWorkingTask._id)}
         />
       )}
-    </div>
+    </DashboardShell>
   )
 }

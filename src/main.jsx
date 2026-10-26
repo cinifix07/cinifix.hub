@@ -2,7 +2,8 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App";
-import { ConvexProvider, ConvexReactClient } from "convex/react";
+import { ConvexReactClient } from "convex/react";
+import { SessionProvider } from "./auth/session.jsx";
 
 const root = document.getElementById("root");
 
@@ -93,9 +94,9 @@ if (!convexUrl) {
     const convex = new ConvexReactClient(convexUrl);
 
     render(
-      <ConvexProvider client={convex}>
+      <SessionProvider client={convex}>
         <App />
-      </ConvexProvider>,
+      </SessionProvider>,
     );
   } catch (error) {
     console.error("Invalid VITE_CONVEX_URL", error);
